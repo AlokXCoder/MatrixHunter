@@ -8,10 +8,10 @@
 
 | Game | Type | Matrix Mechanic |
 |------|------|-----------------|
-| **Matrix Sniper** | Top-down shooter | Rotation matrix curves bullets; scale matrix for scope zoom |
+| **Matrix Sniper** | Top-down shooter | Rotation matrix curves bullets; reflection matrix for ricochet bullets; scale matrix for scope zoom |
 | **Matrix Assassin** | Stealth infiltration | Reflection matrix mirrors guard patrol routes; rotation matrix sweeps vision cones |
-| **Matrix Space Battle** | 2D space shooter | Grid/V formations via rotation-transformed point arrays; scale-pulse power-ups |
-| **Matrix Runner** | Endless runner | Shear matrix speed-warp; translation matrix parallax layers |
+| **Matrix Space Battle** | 2D space shooter | Grid/V formations via rotation-transformed point arrays; scale-pulse power-ups; rotation matrix for boss bullet fans |
+| **Matrix Runner** | Endless runner | Shear matrix speed-warp; translation matrix parallax layers; rotation matrix limb animation; scale matrix for magnet |
 
 ---
 
@@ -64,8 +64,7 @@ buildozer android deploy run logcat
 ```
 
 > **Note:** First build downloads the Android SDK/NDK automatically (~3 GB).
-> Touch controls map: tap left half = LEFT, tap right half = RIGHT, 
-> swipe up = JUMP, swipe down = SLIDE.
+> Mobile uses the integrated `touch_controls.py` for on-screen virtual joypads, buttons, and swipe gestures.
 
 ---
 
@@ -81,6 +80,7 @@ MatrixHunterUniverse/
 ├── sound_manager.py   # Procedural sound generation (numpy)
 ├── animation.py       # Particles, screen shake, matrix rain, starfield
 ├── ui.py              # HUD widgets (health bar, timer, FPS, buttons)
+├── touch_controls.py  # Virtual controller logic & swipe gestures for mobile
 ├── config.py          # Constants, colours, enums
 │
 ├── games/
