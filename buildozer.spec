@@ -36,6 +36,8 @@ android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 android.api         = 33
 android.minapi      = 24
 android.archs       = arm64-v8a, armeabi-v7a
+# Pin build-tools to a stable version (avoids license prompt for brand-new versions)
+android.build_tools_version = 34.0.0
 
 # NDK / SDK
 android.ndk = 25c
