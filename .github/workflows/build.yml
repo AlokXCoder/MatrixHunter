@@ -52,7 +52,9 @@ jobs:
     - name: Cache Buildozer global directory
       uses: actions/cache@v4
       with:
-        path: ~/.buildozer
+        path: |
+          ~/.buildozer
+          ~/.gradle
         key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
           buildozer-${{ runner.os }}-

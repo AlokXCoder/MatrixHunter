@@ -22,10 +22,12 @@ source.dir   = .
 source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
 
 # Python version
+# IMPORTANT: Pin to 3.12.x — longintrepr.h was removed in Python 3.13+
+# The pygame C extension (src_c/_sdl2/sdl2.c) still includes it → build fails on 3.13/3.14
 osx.python_version = 3
 
-# Requirements (pygame for rendering and audio playback)
-requirements = python3,pygame
+# Requirements — python3==3.12.8 pins the exact version used by python-for-android
+requirements = python3==3.12.8,pygame
 
 # Screen / orientation
 orientation  = landscape
