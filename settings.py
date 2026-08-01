@@ -30,6 +30,8 @@ class Settings:
     show_fps      : bool  = True
     screen_shake  : bool  = True
     particles     : bool  = True
+    avatar_type   : str   = "shape"
+    avatar_value  : str   = "default"
 
     # ── persistence ──────────────────────────────────────────────
 

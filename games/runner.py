@@ -344,15 +344,21 @@ class RunnerPlayer:
             ]
             pygame.draw.polygon(surface, NEON_CYAN, arm_pts)
 
-        # Body
-        pygame.draw.rect(surface, MATRIX_GREEN,
-                         (cx - 11, cy - h//2 + 8, 22, h - 16),
-                         border_radius=6)
+        # Body & Head
+        from games.common import AvatarRenderer
+        drawn = False
+        if hasattr(self, "settings"):
+            drawn = AvatarRenderer.draw_avatar(surface, cx, cy, 26, h, self.settings, MATRIX_GREEN, 0.0)
 
-        # Head
-        head_y = cy - h//2 - 5
-        pygame.draw.circle(surface, NEON_CYAN, (cx, head_y), 11)
-        pygame.draw.circle(surface, WHITE,     (cx, head_y), 11, 2)
+        if not drawn:
+            pygame.draw.rect(surface, MATRIX_GREEN,
+                             (cx - 11, cy - h//2 + 8, 22, h - 16),
+                             border_radius=6)
+            
+            # Head
+            head_y = cy - h//2 - 5
+            pygame.draw.circle(surface, NEON_CYAN, (cx, head_y), 11)
+            pygame.draw.circle(surface, WHITE,     (cx, head_y), 11, 2)
 
         # Magnet aura
         if self.magnet:
@@ -417,6 +423,7 @@ class RunnerGame:
         self._game_id   = GameID.RUNNER
 
         self._player    = RunnerPlayer()
+        self._player.settings = self._settings
         self._level     = level
         
         from config import LEVEL_THEMES

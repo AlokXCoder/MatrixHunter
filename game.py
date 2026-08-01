@@ -24,7 +24,7 @@ from sound_manager import SoundManager
 from ui import FPSCounter, CRTOverlay, SceneTransition
 from menu import (
     LoadingScreen, MainMenu, GameSelectScreen, LevelSelectScreen,
-    PauseMenu, SettingsScreen, HighScoreScreen, ResultScreen,
+    PauseMenu, SettingsScreen, HighScoreScreen, ResultScreen, AvatarSelectScreen
 )
 
 
@@ -89,6 +89,7 @@ class GameManager:
         self._pause:     Optional[PauseMenu]        = None
         self._settings_scr: Optional[SettingsScreen] = None
         self._scores_scr:   Optional[HighScoreScreen] = None
+        self._avatar_scr:   Optional[AvatarSelectScreen] = None
         
         self._crt = CRTOverlay(SCREEN_WIDTH, SCREEN_HEIGHT)
         self._transition = SceneTransition(duration=0.3)
@@ -111,6 +112,7 @@ class GameManager:
     def _build_main_menu(self) -> MainMenu:
         return MainMenu(
             on_play     = lambda: self._go_to(GameState.GAME_SELECT),
+            on_avatar   = lambda: self._go_to(GameState.AVATAR_SELECT),
             on_scores   = lambda: self._go_to(GameState.HIGH_SCORES),
             on_settings = lambda: self._go_to(GameState.SETTINGS,
                                                from_state=GameState.MAIN_MENU),
@@ -157,6 +159,13 @@ class GameManager:
             on_back  = lambda: self._go_to(GameState.MAIN_MENU),
         )
 
+    def _build_avatar(self) -> AvatarSelectScreen:
+        return AvatarSelectScreen(
+            settings = self._settings,
+            on_back  = lambda: self._go_to(GameState.MAIN_MENU),
+            sound    = self._sound,
+        )
+
     # ── navigation helpers ────────────────────────────────────────────────────
 
     _settings_from: GameState = GameState.MAIN_MENU
@@ -200,6 +209,9 @@ class GameManager:
 
         elif state == GameState.HIGH_SCORES:
             self._scores_scr = self._build_scores()
+
+        elif state == GameState.AVATAR_SELECT:
+            self._avatar_scr = self._build_avatar()
 
         elif state == GameState.PLAYING:
             pass    # game already loaded
@@ -294,6 +306,9 @@ class GameManager:
             elif self._state == GameState.HIGH_SCORES and self._scores_scr:
                 self._scores_scr.handle_event(event, self._sound)
 
+            elif self._state == GameState.AVATAR_SELECT and self._avatar_scr:
+                self._avatar_scr.handle_event(event, self._sound)
+
             elif self._state in (GameState.GAME_OVER, GameState.GAME_WIN):
                 if self._result_screen:
                     self._result_screen.handle_event(event, self._sound)
@@ -347,6 +362,9 @@ class GameManager:
 
         elif self._state == GameState.HIGH_SCORES and self._scores_scr:
             self._scores_scr.update(dt)
+
+        elif self._state == GameState.AVATAR_SELECT and self._avatar_scr:
+            self._avatar_scr.update(dt)
 
         elif self._state in (GameState.GAME_OVER, GameState.GAME_WIN):
             if self._result_screen:
@@ -424,6 +442,9 @@ class GameManager:
 
         elif self._state == GameState.HIGH_SCORES and self._scores_scr:
             self._scores_scr.draw(self._screen)
+
+        elif self._state == GameState.AVATAR_SELECT and self._avatar_scr:
+            self._avatar_scr.draw(self._screen)
 
         elif self._state in (GameState.GAME_OVER, GameState.GAME_WIN):
             if self._active_game:

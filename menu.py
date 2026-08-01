@@ -168,23 +168,25 @@ class LoadingScreen:
 class MainMenu:
     """Animated main menu with matrix rain, glowing title and navigation."""
 
-    def __init__(self, on_play: Callable, on_scores: Callable,
+    def __init__(self, on_play: Callable, on_avatar: Callable, on_scores: Callable,
                  on_settings: Callable, on_quit: Callable) -> None:
         self._rain  = MatrixRain()
         self._time  = 0.0
         self._alpha_in = 0.0   # fade in
 
         cy = SCREEN_HEIGHT // 2 + 20
-        bw, bh, gap = 260, 52, 16
+        bw, bh, gap = 260, 48, 10
 
         self._buttons = [
-            Button(SCREEN_WIDTH//2, cy,           bw, bh, "PLAY",       on_play,
+            Button(SCREEN_WIDTH//2, cy - gap,           bw, bh, "PLAY",       on_play,
                    MATRIX_GREEN, BLACK, FONT_LARGE, "▶", "center"),
-            Button(SCREEN_WIDTH//2, cy + bh+gap,  bw, bh, "HIGH SCORES",on_scores,
+            Button(SCREEN_WIDTH//2, cy + bh,            bw, bh, "AVATAR",     on_avatar,
+                   GOLD,         BLACK, FONT_MEDIUM, "👤", "center"),
+            Button(SCREEN_WIDTH//2, cy + bh*2 + gap,    bw, bh, "HIGH SCORES",on_scores,
                    NEON_CYAN,    BLACK, FONT_MEDIUM, "🏆", "center"),
-            Button(SCREEN_WIDTH//2, cy+(bh+gap)*2,bw, bh, "SETTINGS",   on_settings,
+            Button(SCREEN_WIDTH//2, cy + bh*3 + gap*2,  bw, bh, "SETTINGS",   on_settings,
                    NEON_ORANGE,  BLACK, FONT_MEDIUM, "⚙", "center"),
-            Button(SCREEN_WIDTH//2, cy+(bh+gap)*3,bw, bh, "QUIT",       on_quit,
+            Button(SCREEN_WIDTH//2, cy + bh*4 + gap*3,  bw, bh, "QUIT",       on_quit,
                    NEON_RED,     BLACK, FONT_MEDIUM, "✕", "center"),
         ]
 
@@ -806,3 +808,105 @@ class ResultScreen:
 
         for btn in self._buttons:
             btn.draw(surface)
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  AvatarSelectScreen
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AvatarSelectScreen:
+    """Screen to select between different avatar shapes and images."""
+
+    def __init__(self, settings, on_back: Callable, sound) -> None:
+        self._settings = settings
+        self._on_back  = on_back
+        self._sound    = sound
+        self._time     = 0.0
+        self._rain     = MatrixRain()
+        
+        cx = SCREEN_WIDTH // 2
+        cy = 180
+        bw, bh, gap = 300, 50, 15
+
+        self.options = [
+            ("Default Vector", "shape", "default"),
+            ("Square Shape", "shape", "square"),
+            ("Circle Shape", "shape", "circle"),
+            ("Triangle Shape", "shape", "triangle"),
+            ("Image: Cyber Punk", "image", "assets/avatar1.png"),
+            ("Image: Neon Ninja", "image", "assets/avatar2.png")
+        ]
+
+        self._buttons = []
+        for i, (label, atype, avalue) in enumerate(self.options):
+            b = Button(cx, cy + i * (bh + gap), bw, bh, label,
+                       lambda idx=i: self._select_avatar(idx),
+                       NEON_CYAN, BLACK, FONT_SMALL, anchor="center")
+            self._buttons.append(b)
+            
+        self._back_btn = Button(
+            cx, SCREEN_HEIGHT - 60, 160, 48, "BACK",
+            self._save_and_back, DARK_GRAY, WHITE, FONT_MEDIUM, anchor="center"
+        )
+        
+        self._update_button_colors()
+
+    def _update_button_colors(self):
+        curr_type = self._settings.avatar_type
+        curr_val = self._settings.avatar_value
+        for i, (label, atype, avalue) in enumerate(self.options):
+            if atype == curr_type and avalue == curr_val:
+                self._buttons[i]._col = GOLD
+            else:
+                self._buttons[i]._col = NEON_CYAN
+
+    def _select_avatar(self, idx: int) -> None:
+        _, atype, avalue = self.options[idx]
+        self._settings.avatar_type = atype
+        self._settings.avatar_value = avalue
+        self._sound.play("menu_click")
+        self._update_button_colors()
+
+    def _save_and_back(self) -> None:
+        self._settings.save()
+        self._sound.play("menu_back")
+        self._on_back()
+
+    def handle_event(self, event: pygame.event.Event, sound) -> None:
+        for btn in self._buttons:
+            if btn.handle_event(event):
+                sound.play("menu_click")
+        self._back_btn.handle_event(event)
+
+    def update(self, dt: float) -> None:
+        self._time += dt
+        self._rain.update(dt)
+        for btn in self._buttons:
+            btn.update(dt)
+        self._back_btn.update(dt)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        surface.fill(BLACK)
+        self._rain.draw(surface)
+        
+        draw_glow_text(surface, "SELECT AVATAR",
+                       SCREEN_WIDTH // 2, 80,
+                       FONT_XLARGE, GOLD, glow_radius=8)
+
+        for btn in self._buttons:
+            btn.draw(surface)
+            
+        # Draw a small preview if it's an image
+        curr_type = self._settings.avatar_type
+        curr_val = self._settings.avatar_value
+        preview_x = SCREEN_WIDTH // 2 + 250
+        preview_y = 180
+        
+        draw_text(surface, "PREVIEW", preview_x, preview_y - 30, FONT_MEDIUM, GOLD, anchor="center")
+        
+        from games.common import AvatarRenderer
+        # Draw the avatar at 100x100
+        drawn = AvatarRenderer.draw_avatar(surface, preview_x, preview_y + 80, 100, 100, self._settings, MATRIX_GREEN)
+        if not drawn:
+            draw_text(surface, "?", preview_x, preview_y + 80, FONT_XLARGE, MATRIX_GREEN, anchor="center")
+            
+        self._back_btn.draw(surface)

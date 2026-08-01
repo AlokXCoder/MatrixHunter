@@ -233,8 +233,14 @@ class Spaceship:
         pygame.draw.circle(surface, NEON_YELLOW, (trx, try_), 2)
 
         # Ship body
-        pygame.draw.polygon(surface, NEON_CYAN, pts)
-        pygame.draw.polygon(surface, WHITE, pts, 2)
+        from games.common import AvatarRenderer
+        drawn = False
+        if hasattr(self, "settings"):
+            drawn = AvatarRenderer.draw_avatar(surface, cx, cy, 26, 26, self.settings, NEON_CYAN, self.angle - math.pi/2)
+            
+        if not drawn:
+            pygame.draw.polygon(surface, NEON_CYAN, pts)
+            pygame.draw.polygon(surface, WHITE, pts, 2)
 
         # Rapid glow
         if self._rapid > 0:
@@ -281,6 +287,7 @@ class SpaceEnemy:
         self._hit_flash  = 0.0
         self.bullets: List[Bullet] = []
         self._angle      = math.pi / 2  # facing down initially
+        self.colour      = NEON_RED
 
     @property
     def rect(self) -> pygame.Rect:
@@ -348,6 +355,7 @@ class HeavyEnemy(SpaceEnemy):
     def __init__(self, x: float, y: float) -> None:
         super().__init__(x, y, hp=80.0, speed=50.0, score=250)
         self._burst_left = 0
+        self.colour      = NEON_ORANGE
 
     def update(self, dt: float, player_pos: Tuple[float,float]) -> None:
         super().update(dt, player_pos)
@@ -727,6 +735,7 @@ class SpaceBattleGame:
             self._waves = [dict(count=8, heavy=3, boss=False, formation="v", angle=0.0), dict(count=0, heavy=0, boss=True, formation="single", angle=0.0)]
 
         self._player    = Spaceship(SCREEN_WIDTH // 2, SCREEN_HEIGHT * 0.7)
+        self._player.settings = self._settings
         self._starfield = Starfield(SCREEN_WIDTH, SCREEN_HEIGHT, 250)
         self._particles = ParticleSystem(600)
         self._shake     = ScreenShake()
@@ -918,17 +927,6 @@ class SpaceBattleGame:
                             self._orbs.append(HealthOrb(ex, ey))
                     break
 
-        # ── HealthOrbs ───────────────────────────────────────────
-        for orb in self._orbs[:]:
-            orb.update(dt)
-            if orb.rect.colliderect(self._player.rect):
-                self._player.hp = min(self._player.max_hp, self._player.hp + 20)
-                self._sound.play("powerup")
-                self._floats.add("+20 HP", orb.x, orb.y, NEON_CYAN)
-                self._particles.emit_ring(orb.x, orb.y, 16, NEON_CYAN)
-                self._orbs.remove(orb)
-            elif orb.y > SCREEN_HEIGHT + 40:
-                self._orbs.remove(orb)
             if not pb.alive: continue
             # Player bullet → boss
             if self._boss and self._boss.alive:
@@ -948,6 +946,18 @@ class SpaceBattleGame:
                         self._msgs.push("BOSS DESTROYED!", GOLD, 3.0)
                         if multi > 1:
                             self._floats.add(f"×{multi} COMBO!", bx, by - 50, GOLD)
+
+        # ── HealthOrbs ───────────────────────────────────────────
+        for orb in self._orbs[:]:
+            orb.update(dt)
+            if orb.rect.colliderect(self._player.rect):
+                self._player.hp = min(self._player.max_hp, self._player.hp + 20)
+                self._sound.play("powerup")
+                self._floats.add("+20 HP", orb.x, orb.y, NEON_CYAN)
+                self._particles.emit_ring(orb.x, orb.y, 16, NEON_CYAN)
+                self._orbs.remove(orb)
+            elif orb.y > SCREEN_HEIGHT + 40:
+                self._orbs.remove(orb)
 
         self._enemies = [e for e in self._enemies if e.alive]
 

@@ -806,6 +806,7 @@ class AssassinGame:
 
         px, py            = data["player"]
         self._player      = AssassinPlayer(float(px), float(py))
+        self._player.settings = self._settings
 
         ex, ey            = data["exit"]
         self._exit        = Exit(float(ex), float(ey), color=theme)

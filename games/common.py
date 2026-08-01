@@ -450,3 +450,77 @@ def v_formation(
         rx, ry   = mat_transform(rot, (offset_x, offset_y))
         points.append((origin[0] + rx, origin[1] + ry))
     return points
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  AvatarRenderer
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AvatarRenderer:
+    """Helper for rendering custom avatars (shapes or images)"""
+    _cache = {}
+
+    @classmethod
+    def load_image(cls, path: str) -> Optional[pygame.Surface]:
+        import os
+        if not path or not os.path.exists(path):
+            return None
+        if path not in cls._cache:
+            try:
+                img = pygame.image.load(path).convert_alpha()
+                cls._cache[path] = img
+            except Exception:
+                return None
+        return cls._cache[path]
+
+    @classmethod
+    def draw_avatar(cls, surface: pygame.Surface, x: float, y: float, w: int, h: int, 
+                    settings, default_colour: Tuple[int,int,int], angle: float = 0.0) -> bool:
+        """
+        Draws the avatar at center (x, y) with bounding box (w, h).
+        Returns True if a custom avatar was drawn, False if caller should draw default.
+        """
+        atype = getattr(settings, "avatar_type", "shape")
+        avalue = getattr(settings, "avatar_value", "default")
+        
+        if atype == "shape" and avalue == "default":
+            return False  
+            
+        cx, cy = int(x), int(y)
+        
+        if atype == "image":
+            img = cls.load_image(avalue)
+            if img:
+                scaled = pygame.transform.smoothscale(img, (w, h))
+                if angle != 0.0:
+                    scaled = pygame.transform.rotate(scaled, math.degrees(-angle))
+                r = scaled.get_rect(center=(cx, cy))
+                surface.blit(scaled, r)
+                return True
+            return False
+            
+        if atype == "shape":
+            if avalue == "square":
+                r = pygame.Rect(cx - w//2, cy - h//2, w, h)
+                pygame.draw.rect(surface, default_colour, r, border_radius=4)
+                pygame.draw.rect(surface, (255,255,255), r, 2, border_radius=4)
+                return True
+            elif avalue == "circle":
+                pygame.draw.circle(surface, default_colour, (cx, cy), w//2)
+                pygame.draw.circle(surface, (255,255,255), (cx, cy), w//2, 2)
+                return True
+            elif avalue == "triangle":
+                pts = [(cx, cy - h//2), (cx - w//2, cy + h//2), (cx + w//2, cy + h//2)]
+                if angle != 0.0:
+                    rot = mat_rotation(angle)
+                    rot_pts = []
+                    for px, py in pts:
+                        rx, ry = mat_transform(rot, (px - cx, py - cy))
+                        rot_pts.append((cx + rx, cy + ry))
+                    pts = rot_pts
+                pygame.draw.polygon(surface, default_colour, pts)
+                pygame.draw.polygon(surface, (255,255,255), pts, 2)
+                return True
+                
+        return False
+

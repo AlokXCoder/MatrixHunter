@@ -10,5 +10,7 @@
   "difficulty": "Hard",
   "show_fps": true,
   "screen_shake": true,
-  "particles": true
+  "particles": true,
+  "avatar_type": "shape",
+  "avatar_value": "default"
 }

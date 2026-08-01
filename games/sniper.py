@@ -289,8 +289,14 @@ class SniperPlayer(BasePlayer):
         cx = int(self.x) - offset[0] + self.width  // 2
         cy = int(self.y) - offset[1] + self.height // 2
 
-        pygame.draw.circle(surface, MATRIX_GREEN, (cx, cy), 14)
-        pygame.draw.circle(surface, WHITE,        (cx, cy), 14, 2)
+        from games.common import AvatarRenderer
+        drawn = False
+        if hasattr(self, "settings"):
+            drawn = AvatarRenderer.draw_avatar(surface, cx, cy, 28, 28, self.settings, MATRIX_GREEN, self.angle)
+            
+        if not drawn:
+            pygame.draw.circle(surface, MATRIX_GREEN, (cx, cy), 14)
+            pygame.draw.circle(surface, WHITE,        (cx, cy), 14, 2)
 
         ex = cx + math.cos(self.angle) * 22
         ey = cy + math.sin(self.angle) * 22
@@ -711,6 +717,7 @@ class SniperGame:
         self._spawn_pts   = spawn_pts
 
         self._player      = SniperPlayer(MAP_W // 2, MAP_H // 2)
+        self._player.settings = self._settings
         self._camera      = Camera(MAP_W, MAP_H)
         self._world_surf  = pygame.Surface((MAP_W, MAP_H))
 

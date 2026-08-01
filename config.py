@@ -72,6 +72,7 @@ class GameState(Enum):
     HIGH_SCORES = auto()
     GAME_OVER   = auto()
     GAME_WIN    = auto()
+    AVATAR_SELECT = auto()
 
 # ──────────────────────────── Game IDs ───────────────────────────
 class GameID(Enum):
