@@ -35,8 +35,7 @@ android.minapi      = 24
 android.archs       = arm64-v8a, armeabi-v7a
 
 # NDK / SDK
-android.ndk         = 25b
-android.sdk         = 33
+# Let buildozer automatically manage SDK and NDK versions
 
 # Build
 android.logcat_filters = *:S python:D
