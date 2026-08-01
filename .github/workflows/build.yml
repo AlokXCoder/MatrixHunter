@@ -34,6 +34,9 @@ jobs:
         pip install buildozer==1.5.0
         pip install "cython==0.29.36"
         pip install "virtualenv<21"
+        pip install "python-for-android==2024.01.21"
+        python -m pip show python-for-android
+        python -c "import pythonforandroid; print('P4A Path:', pythonforandroid.__file__)"
         buildozer --version
         python -m pip list
 
@@ -45,6 +48,7 @@ jobs:
         # Ensure a clean state to prevent old Python/NDK caches from breaking the build
         rm -rf .buildozer
         rm -rf ~/.buildozer
+        rm -rf ~/.cache/pip
         # Accept the Android SDK license automatically
         yes | buildozer android debug
 
