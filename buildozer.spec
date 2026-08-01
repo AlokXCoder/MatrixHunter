@@ -27,10 +27,9 @@ source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
 osx.python_version = 3
 
 # Requirements — both python3 AND hostpython3 must be pinned to the same version.
-# hostpython3 = the Python used on the host to cross-compile C extensions
-# python3     = the Python shipped inside the APK
-# longintrepr.h was removed in 3.13+ → must stay on 3.12.x
-requirements = hostpython3==3.12.8,python3==3.12.8,pygame
+# Python 3.11.9 is the most stable version for p4a and avoids the grpmodule.c error.
+# Pin pygame to 2.6.1 to avoid C API incompatibilities.
+requirements = hostpython3==3.11.9,python3==3.11.9,pygame==2.6.1
 
 # Screen / orientation
 orientation  = landscape
@@ -40,7 +39,8 @@ fullscreen   = 1
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 android.api         = 33
 android.minapi      = 24
-android.archs       = arm64-v8a, armeabi-v7a
+# Only build 64-bit to avoid 32-bit libc/threading compile errors in NDK r25c
+android.archs       = arm64-v8a
 # Pin build-tools to a stable version (avoids license prompt for brand-new versions)
 android.build_tools_version = 34.0.0
 
