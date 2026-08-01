@@ -26,6 +26,10 @@ jobs:
 
     - name: Build APK
       run: |
+        export CXXFLAGS="${CXXFLAGS} -std=c++17"
+        export CFLAGS="${CFLAGS} -std=gnu11"
+        export LDFLAGS="${LDFLAGS} -stdlib=libc++"
+        export P4A_LOG_LEVEL=2
         # Accept the Android SDK license automatically
         yes | buildozer android debug || true
         # Sometimes it fails on the first try due to SDK license issues, try one more time if needed
