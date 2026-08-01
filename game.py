@@ -21,10 +21,11 @@ from touch_controls import TouchOverlay
 from settings   import Settings
 from save_manager import SaveManager
 from sound_manager import SoundManager
-from ui import FPSCounter, CRTOverlay, SceneTransition
+from ui import FPSCounter, CRTOverlay, SceneTransition, AchievementToastManager
 from menu import (
     LoadingScreen, MainMenu, GameSelectScreen, LevelSelectScreen,
-    PauseMenu, SettingsScreen, HighScoreScreen, ResultScreen, AvatarSelectScreen
+    PauseMenu, SettingsScreen, HighScoreScreen, ResultScreen, AvatarSelectScreen,
+    ShopScreen, AchievementsScreen
 )
 
 
@@ -62,6 +63,7 @@ class GameManager:
         pygame.mouse.set_visible(False)   # we draw our own cursor in-game
 
         self._clock    = pygame.time.Clock()
+        self._ach_toast = AchievementToastManager()
         self._state    = GameState.LOADING
         self._prev_state: Optional[GameState] = None
 
@@ -90,6 +92,8 @@ class GameManager:
         self._settings_scr: Optional[SettingsScreen] = None
         self._scores_scr:   Optional[HighScoreScreen] = None
         self._avatar_scr:   Optional[AvatarSelectScreen] = None
+        self._shop_scr:     Optional[ShopScreen] = None
+        self._ach_scr:      Optional[AchievementsScreen] = None
         
         self._crt = CRTOverlay(SCREEN_WIDTH, SCREEN_HEIGHT)
         self._transition = SceneTransition(duration=0.3)
@@ -114,10 +118,18 @@ class GameManager:
             on_play     = lambda: self._go_to(GameState.GAME_SELECT),
             on_avatar   = lambda: self._go_to(GameState.AVATAR_SELECT),
             on_scores   = lambda: self._go_to(GameState.HIGH_SCORES),
+            on_shop     = lambda: self._go_to(GameState.SHOP),
+            on_achievements = lambda: self._go_to(GameState.ACHIEVEMENTS),
             on_settings = lambda: self._go_to(GameState.SETTINGS,
                                                from_state=GameState.MAIN_MENU),
             on_quit     = self._quit,
         )
+
+    def _build_shop(self) -> ShopScreen:
+        return ShopScreen(self._save, self._sound, lambda: self._go_to(GameState.MAIN_MENU))
+
+    def _build_achievements(self) -> AchievementsScreen:
+        return AchievementsScreen(self._save, self._sound, lambda: self._go_to(GameState.MAIN_MENU))
 
     def _build_select(self) -> GameSelectScreen:
         return GameSelectScreen(
@@ -212,6 +224,12 @@ class GameManager:
 
         elif state == GameState.AVATAR_SELECT:
             self._avatar_scr = self._build_avatar()
+
+        elif state == GameState.SHOP:
+            self._shop_scr = self._build_shop()
+
+        elif state == GameState.ACHIEVEMENTS:
+            self._ach_scr = self._build_achievements()
 
         elif state == GameState.PLAYING:
             pass    # game already loaded
@@ -309,6 +327,12 @@ class GameManager:
             elif self._state == GameState.AVATAR_SELECT and self._avatar_scr:
                 self._avatar_scr.handle_event(event, self._sound)
 
+            elif self._state == GameState.SHOP and self._shop_scr:
+                self._shop_scr.handle_event(event, self._sound)
+
+            elif self._state == GameState.ACHIEVEMENTS and self._ach_scr:
+                self._ach_scr.handle_event(event, self._sound)
+
             elif self._state in (GameState.GAME_OVER, GameState.GAME_WIN):
                 if self._result_screen:
                     self._result_screen.handle_event(event, self._sound)
@@ -327,6 +351,7 @@ class GameManager:
 
         self._transition.update(dt)
         self._crt.update(dt)
+        self._ach_toast.update(dt)
         
         if self._transition.done and self._next_state is not None:
             self._do_state_switch()
@@ -366,6 +391,12 @@ class GameManager:
         elif self._state == GameState.AVATAR_SELECT and self._avatar_scr:
             self._avatar_scr.update(dt)
 
+        elif self._state == GameState.SHOP and self._shop_scr:
+            self._shop_scr.update(dt)
+
+        elif self._state == GameState.ACHIEVEMENTS and self._ach_scr:
+            self._ach_scr.update(dt)
+
         elif self._state in (GameState.GAME_OVER, GameState.GAME_WIN):
             if self._result_screen:
                 self._result_screen.update(dt)
@@ -382,6 +413,13 @@ class GameManager:
                 score = getattr(self._active_game, "_score", 0)
 
         best  = self._save.get_best_score(gid)
+
+        coins = score // 100
+        if coins > 0:
+            self._save.add_coins(coins)
+            
+        import achievements
+        achievements.check_achievement(self._save, "score_10k", score >= 10000)
 
         if won:
             self._save.unlock_next_level(gid)
@@ -446,6 +484,12 @@ class GameManager:
         elif self._state == GameState.AVATAR_SELECT and self._avatar_scr:
             self._avatar_scr.draw(self._screen)
 
+        elif self._state == GameState.SHOP and self._shop_scr:
+            self._shop_scr.draw(self._screen)
+
+        elif self._state == GameState.ACHIEVEMENTS and self._ach_scr:
+            self._ach_scr.draw(self._screen)
+
         elif self._state in (GameState.GAME_OVER, GameState.GAME_WIN):
             if self._active_game:
                 self._active_game.draw(self._clock)
@@ -460,6 +504,7 @@ class GameManager:
             self._touch_overlay.draw(self._screen)
 
         self._crt.draw(self._screen)
+        self._ach_toast.draw(self._screen)
         self._transition.draw(self._screen)
 
         # Draw custom cursor if not playing

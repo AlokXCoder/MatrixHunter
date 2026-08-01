@@ -913,6 +913,12 @@ class SpaceBattleGame:
                     self._floats.add(f"-{int(pb.damage)}", ex, ey, NEON_RED, duration=0.6)
                     if killed:
                         multi = self._combo.register_kill()
+                        
+                        import achievements
+                        achievements.check_achievement(self._save, "first_blood", True)
+                        achievements.check_achievement(self._save, "combo_10", multi >= 10)
+                        achievements.check_achievement(self._save, "combo_20", multi >= 20)
+                        
                         pts   = enemy.score_value * multi * (3 if self._level == 6 else 1)
                         self._player.score += pts
                         self._particles.emit_burst(ex, ey, 30, enemy.colour, 140, glow=True)
@@ -938,6 +944,10 @@ class SpaceBattleGame:
                     self._floats.add(f"-{int(pb.damage)}", bx, by, NEON_RED, duration=0.6)
                     if killed:
                         multi = self._combo.register_kill()
+                        
+                        import achievements
+                        achievements.check_achievement(self._save, "boss_killer", True)
+                        
                         pts = 5000 * multi * (3 if self._level == 6 else 1)
                         self._player.score += pts
                         self._particles.emit_burst(bx, by, 60, NEON_PURPLE, 200, glow=True)

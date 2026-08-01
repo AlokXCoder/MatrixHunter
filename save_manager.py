@@ -63,6 +63,26 @@ class SaveManager:
         """Return the complete score table."""
         return dict(self._scores)
 
+    def get_global_scores(self, game_id: GameID, n: int = 5) -> list[tuple[str, int]]:
+        """Mock global leaderboard by combining fake players with local best."""
+        import random
+        # deterministic fake scores based on game
+        random.seed(game_id.value)
+        fake_names = ["Neo", "Trinity", "Morpheus", "Smith", "Cypher", "Oracle", "Dozer"]
+        global_list = []
+        for i in range(10):
+            global_list.append((random.choice(fake_names), random.randint(1000, 25000)))
+        
+        # Add local best
+        local_best = self.get_best_score(game_id)
+        if local_best > 0:
+            global_list.append(("You", local_best))
+            
+        global_list.sort(key=lambda x: x[1], reverse=True)
+        # Restore random seed
+        random.seed()
+        return global_list[:n]
+
     # ── Game State ────────────────────────────────────────────────
 
     def _load_state(self) -> dict[str, Any]:
@@ -90,7 +110,45 @@ class SaveManager:
         with open(SAVE_FILE, "w", encoding="utf-8") as fh:
             json.dump(self._state, fh, indent=2)
 
-    # ── Level Progression ─────────────────────────────────────────
+    # ── Global State (Coins, Shop, Achievements) ──────────────────
+
+    def get_coins(self) -> int:
+        return self._state.get("coins", 0)
+
+    def add_coins(self, amount: int) -> None:
+        self._state["coins"] = self.get_coins() + amount
+        with open(SAVE_FILE, "w", encoding="utf-8") as fh:
+            json.dump(self._state, fh, indent=2)
+
+    def spend_coins(self, amount: int) -> bool:
+        if self.get_coins() >= amount:
+            self._state["coins"] -= amount
+            with open(SAVE_FILE, "w", encoding="utf-8") as fh:
+                json.dump(self._state, fh, indent=2)
+            return True
+        return False
+
+    def get_unlocked_items(self) -> list[str]:
+        return self._state.get("unlocked_items", [])
+
+    def unlock_item(self, item_id: str) -> None:
+        items = self.get_unlocked_items()
+        if item_id not in items:
+            items.append(item_id)
+            self._state["unlocked_items"] = items
+            with open(SAVE_FILE, "w", encoding="utf-8") as fh:
+                json.dump(self._state, fh, indent=2)
+
+    def get_unlocked_achievements(self) -> list[str]:
+        return self._state.get("achievements", [])
+
+    def unlock_achievement(self, ach_id: str) -> None:
+        achs = self.get_unlocked_achievements()
+        if ach_id not in achs:
+            achs.append(ach_id)
+            self._state["achievements"] = achs
+            with open(SAVE_FILE, "w", encoding="utf-8") as fh:
+                json.dump(self._state, fh, indent=2)
 
     def get_unlocked_level(self, game_id: GameID) -> int:
         """Returns the highest unlocked level for a game (min 1, max 5)."""

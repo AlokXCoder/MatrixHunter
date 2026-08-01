@@ -58,15 +58,13 @@ class TouchJoystick:
     def dy(self) -> float:
         return self._dy if abs(self._dy) > self.DEAD_ZONE else 0.0
 
-    def _in_range(self, x: int, y: int) -> bool:
-        bx, by = self._base
-        return math.hypot(x - bx, y - by) < self.RADIUS * 2.5
-
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.FINGERDOWN:
             fx = int(event.x * SCREEN_WIDTH)
             fy = int(event.y * SCREEN_HEIGHT)
-            if self._finger is None and self._in_range(fx, fy):
+            if self._finger is None and fx < SCREEN_WIDTH // 2:
+                self._base = (fx, fy)
+                self._nub = (fx, fy)
                 self._finger = event.finger_id
                 self._active = True
 

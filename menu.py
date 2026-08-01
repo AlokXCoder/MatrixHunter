@@ -169,6 +169,7 @@ class MainMenu:
     """Animated main menu with matrix rain, glowing title and navigation."""
 
     def __init__(self, on_play: Callable, on_avatar: Callable, on_scores: Callable,
+                 on_shop: Callable, on_achievements: Callable,
                  on_settings: Callable, on_quit: Callable) -> None:
         self._rain  = MatrixRain()
         self._time  = 0.0
@@ -176,18 +177,20 @@ class MainMenu:
 
         cy = SCREEN_HEIGHT // 2 + 20
         bw, bh, gap = 260, 48, 10
+        bw2 = 126
+        cx = SCREEN_WIDTH // 2
 
         self._buttons = [
-            Button(SCREEN_WIDTH//2, cy - gap,           bw, bh, "PLAY",       on_play,
-                   MATRIX_GREEN, BLACK, FONT_LARGE, "▶", "center"),
-            Button(SCREEN_WIDTH//2, cy + bh,            bw, bh, "AVATAR",     on_avatar,
-                   GOLD,         BLACK, FONT_MEDIUM, "👤", "center"),
-            Button(SCREEN_WIDTH//2, cy + bh*2 + gap,    bw, bh, "HIGH SCORES",on_scores,
-                   NEON_CYAN,    BLACK, FONT_MEDIUM, "🏆", "center"),
-            Button(SCREEN_WIDTH//2, cy + bh*3 + gap*2,  bw, bh, "SETTINGS",   on_settings,
-                   NEON_ORANGE,  BLACK, FONT_MEDIUM, "⚙", "center"),
-            Button(SCREEN_WIDTH//2, cy + bh*4 + gap*3,  bw, bh, "QUIT",       on_quit,
-                   NEON_RED,     BLACK, FONT_MEDIUM, "✕", "center"),
+            Button(cx, cy - gap, bw, bh, "PLAY", on_play, MATRIX_GREEN, BLACK, FONT_LARGE, "▶", "center"),
+            # Row 1
+            Button(cx - 67, cy + bh, bw2, bh, "AVATAR", on_avatar, GOLD, BLACK, FONT_MEDIUM, "👤", "center"),
+            Button(cx + 67, cy + bh, bw2, bh, "SHOP", on_shop, NEON_PURPLE, BLACK, FONT_MEDIUM, "🛒", "center"),
+            # Row 2
+            Button(cx - 67, cy + bh*2 + gap, bw2, bh, "SCORES", on_scores, NEON_CYAN, BLACK, FONT_MEDIUM, "🏆", "center"),
+            Button(cx + 67, cy + bh*2 + gap, bw2, bh, "AWARDS", on_achievements, NEON_YELLOW, BLACK, FONT_MEDIUM, "🏅", "center"),
+            # Row 3
+            Button(cx - 67, cy + bh*3 + gap*2, bw2, bh, "SETTINGS", on_settings, NEON_ORANGE, BLACK, FONT_MEDIUM, "⚙", "center"),
+            Button(cx + 67, cy + bh*3 + gap*2, bw2, bh, "QUIT", on_quit, NEON_RED, BLACK, FONT_MEDIUM, "✕", "center"),
         ]
 
         # Floating matrix symbols around title
@@ -675,20 +678,39 @@ class HighScoreScreen:
 
     def __init__(self, save_mgr, on_back: Callable) -> None:
         self._save     = save_mgr
+        self._mode = "LOCAL"
         self._back_btn = Button(
             SCREEN_WIDTH // 2, SCREEN_HEIGHT - 40,
             160, 40, "BACK", on_back,
             DARK_GRAY, WHITE, FONT_SMALL, "◀", "center"
         )
+        self._toggle_btn = Button(
+            SCREEN_WIDTH // 2, 75,
+            160, 36, "MODE: LOCAL", self._toggle_mode,
+            MATRIX_GREEN, BLACK, FONT_SMALL, "🌐", "center"
+        )
         self._time = 0.0
+
+    def _toggle_mode(self):
+        if self._mode == "LOCAL":
+            self._mode = "GLOBAL"
+            self._toggle_btn._label = "MODE: GLOBAL"
+            self._toggle_btn._colour = NEON_CYAN
+        else:
+            self._mode = "LOCAL"
+            self._toggle_btn._label = "MODE: LOCAL"
+            self._toggle_btn._colour = MATRIX_GREEN
 
     def handle_event(self, event: pygame.event.Event, sound) -> None:
         if self._back_btn.handle_event(event):
             sound.play("menu_back")
+        if self._toggle_btn.handle_event(event):
+            sound.play("menu_click")
 
     def update(self, dt: float) -> None:
         self._time += dt
         self._back_btn.update(dt)
+        self._toggle_btn.update(dt)
 
     def draw(self, surface: pygame.Surface) -> None:
         surface.fill(DARK_BG)
@@ -696,24 +718,34 @@ class HighScoreScreen:
                        SCREEN_WIDTH // 2, 30,
                        FONT_XLARGE, GOLD, glow_radius=8)
 
+        self._toggle_btn.draw(surface)
+
         col_w = SCREEN_WIDTH // len(list(GameID))
         for gi, gid in enumerate(GameID):
             x  = gi * col_w + col_w // 2
             col = GAME_COLOURS[gid]
 
             draw_glow_text(surface, gid.value.replace("Matrix ", ""),
-                           x, 110, FONT_LARGE, col, glow_radius=4)
-            pygame.draw.line(surface, col, (x - col_w//2 + 20, 150),
-                             (x + col_w//2 - 20, 150), 1)
+                           x, 120, FONT_LARGE, col, glow_radius=4)
+            pygame.draw.line(surface, col, (x - col_w//2 + 20, 160),
+                             (x + col_w//2 - 20, 160), 1)
 
-            scores = self._save.get_top_scores(gid, 5)
-            if not scores:
-                draw_text(surface, "No scores yet", x, 165, FONT_SMALL,
-                          DARK_GRAY, anchor="midtop")
-            for rank, sc in enumerate(scores, 1):
-                rank_col = GOLD if rank == 1 else (WHITE if rank <= 3 else DARK_GRAY)
-                draw_text(surface, f"#{rank}  {sc:,}", x, 155 + rank * 30,
-                          FONT_MEDIUM, rank_col, bold=(rank == 1), anchor="midtop")
+            if self._mode == "LOCAL":
+                scores = self._save.get_top_scores(gid, 5)
+                if not scores:
+                    draw_text(surface, "No scores yet", x, 175, FONT_SMALL,
+                              DARK_GRAY, anchor="midtop")
+                for rank, sc in enumerate(scores, 1):
+                    rank_col = GOLD if rank == 1 else (WHITE if rank <= 3 else DARK_GRAY)
+                    draw_text(surface, f"#{rank}  {sc:,}", x, 165 + rank * 30,
+                              FONT_MEDIUM, rank_col, bold=(rank == 1), anchor="midtop")
+            else:
+                scores = self._save.get_global_scores(gid, 5)
+                for rank, (name, sc) in enumerate(scores, 1):
+                    rank_col = GOLD if name == "You" else (WHITE if rank <= 3 else DARK_GRAY)
+                    txt = f"#{rank} {name} - {sc:,}"
+                    draw_text(surface, txt, x, 165 + rank * 30,
+                              FONT_SMALL, rank_col, bold=(name == "You"), anchor="midtop")
 
         self._back_btn.draw(surface)
 
@@ -908,5 +940,157 @@ class AvatarSelectScreen:
         drawn = AvatarRenderer.draw_avatar(surface, preview_x, preview_y + 80, 100, 100, self._settings, MATRIX_GREEN)
         if not drawn:
             draw_text(surface, "?", preview_x, preview_y + 80, FONT_XLARGE, MATRIX_GREEN, anchor="center")
+            
+        self._back_btn.draw(surface)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ShopScreen
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ShopScreen:
+    def __init__(self, save_mgr, sound, on_back: Callable) -> None:
+        self._save = save_mgr
+        self._sound = sound
+        self._on_back = on_back
+        self._rain = MatrixRain()
+        self._time = 0.0
+        self._buttons = []
+        
+        self.items = [
+            {"id": "cyan_bullets", "title": "Cyan Bullets", "desc": "Cosmetic override", "cost": 300},
+            {"id": "max_health_plus", "title": "Max Health +50", "desc": "Start with 150 HP", "cost": 1000},
+            {"id": "starting_combo", "title": "Combo Initiate", "desc": "Start with 2x Combo", "cost": 500},
+        ]
+        
+        self._back_btn = Button(
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT - 60, 160, 48, "BACK",
+            self._save_and_back, DARK_GRAY, WHITE, FONT_MEDIUM, anchor="center"
+        )
+        self._refresh_buttons()
+
+    def _refresh_buttons(self):
+        self._buttons.clear()
+        cx = SCREEN_WIDTH // 2
+        cy = 200
+        unlocked = self._save.get_unlocked_items()
+        
+        for i, item in enumerate(self.items):
+            is_unlocked = item["id"] in unlocked
+            col = DARK_GRAY if is_unlocked else NEON_PURPLE
+            text = "UNLOCKED" if is_unlocked else f"BUY ({item['cost']})"
+            
+            b = Button(cx + 180, cy + i * 70, 140, 40, text,
+                       lambda idx=i: self._buy_item(idx),
+                       col, WHITE if not is_unlocked else BLACK, FONT_SMALL, anchor="center")
+            self._buttons.append(b)
+
+    def _buy_item(self, idx: int) -> None:
+        item = self.items[idx]
+        if item["id"] in self._save.get_unlocked_items():
+            self._sound.play("menu_error")
+            return
+            
+        if self._save.spend_coins(item["cost"]):
+            self._save.unlock_item(item["id"])
+            self._sound.play("powerup")
+            self._refresh_buttons()
+        else:
+            self._sound.play("menu_error")
+
+    def _save_and_back(self) -> None:
+        self._sound.play("menu_back")
+        self._on_back()
+
+    def handle_event(self, event: pygame.event.Event, sound) -> None:
+        for btn in self._buttons:
+            if btn.handle_event(event):
+                sound.play("menu_click")
+        self._back_btn.handle_event(event)
+
+    def update(self, dt: float) -> None:
+        self._time += dt
+        self._rain.update(dt)
+        for btn in self._buttons:
+            btn.update(dt)
+        self._back_btn.update(dt)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        surface.fill(BLACK)
+        self._rain.draw(surface)
+        
+        draw_glow_text(surface, "HACKER SHOP", SCREEN_WIDTH // 2, 80, FONT_XLARGE, NEON_PURPLE, glow_radius=8)
+        
+        coins = self._save.get_coins()
+        draw_text(surface, f"YOUR COINS: {coins:,}", SCREEN_WIDTH // 2, 130, FONT_MEDIUM, GOLD, anchor="center")
+        
+        cx = SCREEN_WIDTH // 2
+        cy = 200
+        
+        for i, item in enumerate(self.items):
+            iy = cy + i * 70
+            draw_text(surface, item["title"], cx - 250, iy - 10, FONT_MEDIUM, WHITE, anchor="midleft")
+            draw_text(surface, item["desc"], cx - 250, iy + 15, FONT_SMALL, NEON_CYAN, anchor="midleft")
+            
+        for btn in self._buttons:
+            btn.draw(surface)
+            
+        self._back_btn.draw(surface)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  AchievementsScreen
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AchievementsScreen:
+    def __init__(self, save_mgr, sound, on_back: Callable) -> None:
+        self._save = save_mgr
+        self._sound = sound
+        self._on_back = on_back
+        self._rain = MatrixRain()
+        self._time = 0.0
+        
+        self._back_btn = Button(
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT - 60, 160, 48, "BACK",
+            self._save_and_back, DARK_GRAY, WHITE, FONT_MEDIUM, anchor="center"
+        )
+
+    def _save_and_back(self) -> None:
+        self._sound.play("menu_back")
+        self._on_back()
+
+    def handle_event(self, event: pygame.event.Event, sound) -> None:
+        self._back_btn.handle_event(event)
+
+    def update(self, dt: float) -> None:
+        self._time += dt
+        self._rain.update(dt)
+        self._back_btn.update(dt)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        surface.fill(BLACK)
+        self._rain.draw(surface)
+        
+        draw_glow_text(surface, "ACHIEVEMENTS", SCREEN_WIDTH // 2, 80, FONT_XLARGE, NEON_YELLOW, glow_radius=8)
+        
+        cx = SCREEN_WIDTH // 2
+        cy = 160
+        unlocked = self._save.get_unlocked_achievements()
+        
+        import achievements
+        for i, (ach_id, ach) in enumerate(achievements.ACHIEVEMENTS_DB.items()):
+            iy = cy + i * 70
+            is_unlocked = ach_id in unlocked
+            
+            icon = "🏆" if is_unlocked else "🔒"
+            col = GOLD if is_unlocked else DARK_GRAY
+            title = ach["title"] if is_unlocked else "???"
+            desc = ach["desc"] if is_unlocked else "Locked achievement"
+            
+            draw_text(surface, icon, cx - 220, iy, FONT_LARGE, col, anchor="center")
+            draw_text(surface, title, cx - 180, iy - 10, FONT_MEDIUM, col, anchor="midleft")
+            draw_text(surface, desc, cx - 180, iy + 15, FONT_SMALL, col if is_unlocked else (50,50,50), anchor="midleft")
+            if is_unlocked:
+                draw_text(surface, f"Reward: {ach['reward']}", cx + 220, iy, FONT_SMALL, NEON_GREEN if is_unlocked else DARK_GRAY, anchor="midright")
             
         self._back_btn.draw(surface)

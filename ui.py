@@ -844,3 +844,56 @@ class CRTOverlay:
         # Draw vignette
         surface.blit(self._vignette, (0, 0))
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Achievement Toast Manager
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AchievementToastManager:
+    """Displays pop-up notifications for unlocked achievements."""
+    def __init__(self) -> None:
+        self._toasts: list[dict] = []
+        self._current = None
+        self._timer = 0.0
+
+    def update(self, dt: float) -> None:
+        import achievements
+        for ach in achievements.get_pending_toasts():
+            self._toasts.append(ach)
+
+        if self._current is None and self._toasts:
+            self._current = self._toasts.pop(0)
+            self._timer = 4.0
+
+        if self._current:
+            self._timer -= dt
+            if self._timer <= 0:
+                self._current = None
+
+    def draw(self, surface: pygame.Surface) -> None:
+        if not self._current:
+            return
+            
+        tw, th = 380, 80
+        tx = SCREEN_WIDTH // 2 - tw // 2
+        
+        # Slide animation
+        ty = 20
+        if self._timer > 3.5:
+            ty = int(20 - (self._timer - 3.5) * 2 * 100)
+        elif self._timer < 0.5:
+            ty = int(20 - (0.5 - self._timer) * 2 * 100)
+            
+        rect = pygame.Rect(tx, ty, tw, th)
+        
+        # Background
+        pygame.draw.rect(surface, (20, 20, 25), rect, border_radius=8)
+        pygame.draw.rect(surface, GOLD, rect, 2, border_radius=8)
+        
+        # Text
+        draw_text(surface, "🏆 ACHIEVEMENT UNLOCKED 🏆", tx + tw//2, ty + 10, FONT_SMALL, GOLD, anchor="midtop")
+        draw_glow_text(surface, self._current["title"], tx + tw//2, ty + 35, FONT_MEDIUM, WHITE, glow_radius=4)
+        draw_text(surface, self._current["desc"], tx + tw//2, ty + 60, FONT_SMALL, NEON_CYAN, anchor="midtop")
+        draw_text(surface, f"+{self._current['reward']} Coins", tx + tw - 10, ty + 10, FONT_SMALL, GOLD, anchor="topright")
+
+

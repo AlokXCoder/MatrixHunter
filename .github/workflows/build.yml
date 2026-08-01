@@ -30,6 +30,9 @@ jobs:
         export CXXFLAGS="${CXXFLAGS} -std=c++17"
         export CFLAGS="${CFLAGS} -std=gnu11"
         export P4A_LOG_LEVEL=2
+        # Ensure a clean state to prevent old Python/NDK caches from breaking the build
+        rm -rf .buildozer
+        rm -rf ~/.buildozer
         # Accept the Android SDK license automatically
         yes | buildozer android debug
 

@@ -73,6 +73,8 @@ class GameState(Enum):
     GAME_OVER   = auto()
     GAME_WIN    = auto()
     AVATAR_SELECT = auto()
+    SHOP        = auto()
+    ACHIEVEMENTS = auto()
 
 # ──────────────────────────── Game IDs ───────────────────────────
 class GameID(Enum):
