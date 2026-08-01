@@ -26,7 +26,7 @@ class _SilentSound:
 class SoundManager:
     """
     Generates and caches all game sound effects and music tracks.
-    All sounds are loaded from pre-generated .wav files in assets/sounds/.
+    All sounds are loaded from pre-generated .ogg files in assets/sounds/.
     """
 
     # Channel allocation
@@ -51,7 +51,7 @@ class SoundManager:
 
     def _store(self, name: str) -> None:
         try:
-            filepath = os.path.join("assets", "sounds", f"{name}.wav")
+            filepath = os.path.join("assets", "sounds", f"{name}.ogg")
             if os.path.exists(filepath):
                 sound = pygame.mixer.Sound(filepath)
                 self._sounds[name] = sound
