@@ -19,7 +19,7 @@
 
 ### Requirements
 ```
-1. **Python 3.14+**
+1. **Python 3.10+**
 2. **Pygame-CE (Community Edition)**
 ```
 
