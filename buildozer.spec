@@ -27,9 +27,9 @@ source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
 osx.python_version = 3
 
 # Requirements — both python3 AND hostpython3 must be pinned to the same version.
-# Python 3.11.9 is the most stable version for p4a and avoids the grpmodule.c error.
-# We just use 'pygame' so python-for-android uses its own patched recipe.
-requirements = hostpython3==3.11.9,python3==3.11.9,pygame
+# We must use Python 3.10.x. Python 3.11+ moved the 'longintrepr.h' header to an internal
+# directory, which completely breaks python-for-android's built-in pygame recipe.
+requirements = hostpython3==3.10.14,python3==3.10.14,pygame
 
 # Screen / orientation
 orientation  = landscape
