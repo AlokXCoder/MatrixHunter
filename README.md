@@ -25,7 +25,7 @@
 
 ### Installation & Run
 ```bash
-pip install pygame-ce numpy
+pip install pygame-ce
 python main.py
 ```
 

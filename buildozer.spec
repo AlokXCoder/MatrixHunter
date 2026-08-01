@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
 osx.python_version = 3
 
 # Requirements (pygame for rendering and audio playback)
-requirements = python3,pygame,numpy
+requirements = python3,pygame
 
 # Screen / orientation
 orientation  = landscape
