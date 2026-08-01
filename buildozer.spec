@@ -21,8 +21,8 @@ source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
 # Python version
 osx.python_version = 3
 
-# Requirements (pygame-ce + numpy for procedural audio)
-requirements = python3,pygame,numpy
+# Requirements (pygame for rendering and audio playback)
+requirements = python3,pygame
 
 # Screen / orientation
 orientation  = landscape
@@ -35,7 +35,7 @@ android.minapi      = 24
 android.archs       = arm64-v8a, armeabi-v7a
 
 # NDK / SDK
-# Let buildozer automatically manage SDK and NDK versions
+android.ndk = 25c
 
 # Build
 android.logcat_filters = *:S python:D

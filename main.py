@@ -7,7 +7,7 @@ Usage:
     python main.py
 
 Requirements:
-    pip install pygame-ce numpy
+    pip install pygame-ce
 """
 
 from __future__ import annotations
@@ -25,10 +25,6 @@ def _check_deps() -> None:
         import pygame  # noqa: F401
     except ImportError:
         missing.append("pygame-ce")
-    try:
-        import numpy   # noqa: F401
-    except ImportError:
-        missing.append("numpy")
     if missing:
         print("=" * 60)
         print("Missing dependencies:")
