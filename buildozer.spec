@@ -26,8 +26,11 @@ source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
 # The pygame C extension (src_c/_sdl2/sdl2.c) still includes it → build fails on 3.13/3.14
 osx.python_version = 3
 
-# Requirements — python3==3.12.8 pins the exact version used by python-for-android
-requirements = python3==3.12.8,pygame
+# Requirements — both python3 AND hostpython3 must be pinned to the same version.
+# hostpython3 = the Python used on the host to cross-compile C extensions
+# python3     = the Python shipped inside the APK
+# longintrepr.h was removed in 3.13+ → must stay on 3.12.x
+requirements = hostpython3==3.12.8,python3==3.12.8,pygame
 
 # Screen / orientation
 orientation  = landscape
