@@ -117,7 +117,11 @@ COMBO_MAX: int       = 16   # max combo multiplier cap
 
 # ──────────────────────────── Touch / Mobile ──────────────────────
 import pygame as _pg
-TOUCH_ENABLED: bool = False  # set True at runtime when touch detected
+# Auto-detect Android: sys.getandroidapilevel only exists inside python-for-android.
+# On desktop this attribute is absent → TOUCH_ENABLED = False (keyboard + mouse).
+# On Android it is always present → TOUCH_ENABLED = True (virtual joystick shown).
+import sys as _sys
+TOUCH_ENABLED: bool = hasattr(_sys, 'getandroidapilevel')
 
 # ──────────────────────────── Difficulty Presets ─────────────────
 class Difficulty(Enum):

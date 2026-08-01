@@ -14,6 +14,9 @@ package.domain = org.matrixhunter
 version      = 1.0.0
 icon.filename = %(source.dir)s/assets/images/icon.png
 
+# Entry point
+source.main = main.py
+
 # Source
 source.dir   = .
 source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
