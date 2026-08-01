@@ -19,12 +19,11 @@
 
 ### Requirements
 ```
-Python 3.10+
-pygame-ce
-numpy
+1. **Python 3.14+**
+2. **Pygame-CE (Community Edition)**
 ```
 
-### Install & Run
+### Installation & Run
 ```bash
 pip install pygame-ce numpy
 python main.py
