@@ -8,6 +8,7 @@ Owns the main loop, scene transitions, and wires together all systems.
 from __future__ import annotations
 
 import sys
+import asyncio
 from typing import Optional
 
 import pygame
@@ -272,7 +273,7 @@ class GameManager:
 
     # ── main run loop ─────────────────────────────────────────────────────────
 
-    def run(self) -> None:
+    async def run(self) -> None:
         """Blocking main loop — returns never."""
         while True:
             dt = min(self._clock.tick(FPS) / 1000.0, 0.05)   # cap at 50 ms
@@ -280,6 +281,7 @@ class GameManager:
             self._handle_events()
             self._update(dt)
             self._draw()
+            await asyncio.sleep(0)
 
     # ── event dispatch ────────────────────────────────────────────────────────
 

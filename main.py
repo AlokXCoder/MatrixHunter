@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import sys
 import os
+import asyncio
 
 # ── ensure the project root is on sys.path ────────────────────────────────────
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -37,7 +38,7 @@ _check_deps()
 
 import pygame
 
-def main() -> None:
+async def main() -> None:
     """Initialise and run the game."""
     # Ensure data directory exists before any save/settings operations
     from config import DATA_DIR
@@ -46,8 +47,8 @@ def main() -> None:
 
     from game import GameManager
     manager = GameManager()
-    manager.run()
+    await manager.run()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
