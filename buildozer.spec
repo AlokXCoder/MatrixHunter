@@ -28,8 +28,8 @@ osx.python_version = 3
 
 # Requirements — both python3 AND hostpython3 must be pinned to the same version.
 # Python 3.11.9 is the most stable version for p4a and avoids the grpmodule.c error.
-# Pin pygame to 2.6.1 to avoid C API incompatibilities.
-requirements = hostpython3==3.11.9,python3==3.11.9,pygame==2.6.1
+# We just use 'pygame' so python-for-android uses its own patched recipe.
+requirements = hostpython3==3.11.9,python3==3.11.9,pygame
 
 # Screen / orientation
 orientation  = landscape
