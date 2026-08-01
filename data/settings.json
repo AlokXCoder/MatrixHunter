@@ -1,0 +1,14 @@
+{
+  "master_volume": 0.7,
+  "music_volume": 0.5,
+  "sfx_volume": 0.8,
+  "fullscreen": false,
+  "resolution": [
+    1280,
+    720
+  ],
+  "difficulty": "Hard",
+  "show_fps": true,
+  "screen_shake": true,
+  "particles": true
+}
