@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
+    # Force Java 17 for the entire job (sdkmanager requires Java 17+)
+    env:
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
     steps:
     - name: Checkout source code
       uses: actions/checkout@v4
@@ -29,6 +33,17 @@ jobs:
           build-essential ccache \
           autoconf automake libtool
 
+    - name: Set Java 17 as default JDK
+      run: |
+        # Ensure Java 17 is used for all subsequent steps
+        sudo update-alternatives --set java \
+          /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+        sudo update-alternatives --set javac \
+          /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+        echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
+        java -version
+
     - name: Install Buildozer and Cython
       run: |
         pip install --upgrade pip
@@ -48,27 +63,27 @@ jobs:
         mkdir -p "$SDK_DIR"
 
         # ── Download Android Command Line Tools ──────────────────────────
-        # (This is where sdkmanager lives in modern Android SDK)
+        # (compiled for Java 17 — must have JAVA_HOME set to Java 17 above)
         wget -q \
           "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
           -O /tmp/cmdline-tools.zip
 
-        # ── Extract to the SDK directory ─────────────────────────────────
+        # ── Extract to SDK directory ─────────────────────────────────────
         mkdir -p "$SDK_DIR/cmdline-tools"
         unzip -q /tmp/cmdline-tools.zip -d "$SDK_DIR/cmdline-tools"
-        # Google names the inner folder "cmdline-tools" — rename to "latest"
         mv "$SDK_DIR/cmdline-tools/cmdline-tools" "$SDK_DIR/cmdline-tools/latest"
 
         # ── Symlink old path → new path ──────────────────────────────────
-        # Buildozer's internal code looks for the OLD path: tools/bin/sdkmanager
-        # The new location is: cmdline-tools/latest/bin/sdkmanager
-        # This symlink makes Buildozer find it at the old location.
+        # Buildozer's internal code looks for tools/bin/sdkmanager (old SDK layout)
         mkdir -p "$SDK_DIR/tools/bin"
         ln -sf \
           "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" \
           "$SDK_DIR/tools/bin/sdkmanager"
 
         SDKMANAGER="$SDK_DIR/cmdline-tools/latest/bin/sdkmanager"
+
+        # Confirm Java 17 is active
+        echo "Using Java: $(java -version 2>&1 | head -1)"
 
         # ── Accept all SDK licenses non-interactively ────────────────────
         yes | "$SDKMANAGER" --sdk_root="$SDK_DIR" --licenses || true
