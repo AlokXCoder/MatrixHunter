@@ -22,7 +22,7 @@ source.include_exts = py,png,jpg,kv,atlas,json,wav,ogg,ttf
 osx.python_version = 3
 
 # Requirements (pygame-ce + numpy for procedural audio)
-requirements = python3,pygame-ce,numpy
+requirements = python3,pygame-ce,numpy==1.26.4
 
 # Screen / orientation
 orientation  = landscape
